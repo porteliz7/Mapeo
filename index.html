@@ -16,21 +16,58 @@
         .slot {
             transition: all 0.2s;
             cursor: pointer;
-            /* Aplicar estilo de cuadrícula/rack */
-            @apply flex flex-col items-center justify-center text-xs font-semibold rounded-lg shadow-inner w-full h-12 p-1 border-2; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+            width: 100%;
+            height: 3rem;
+            padding: 0.25rem;
+            border-width: 2px;
             min-width: 40px; /* Asegurar que no se colapse en móvil */
         }
         .slot-empty {
-            @apply bg-gray-50 border-dashed border-gray-300 text-gray-400 hover:bg-green-50 hover:border-green-400 hover:text-green-600;
+            background-color: rgb(249 250 251);
+            border-style: dashed;
+            border-color: rgb(209 213 219);
+            color: rgb(156 163 175);
+        }
+        .slot-empty:hover {
+            background-color: rgb(240 253 244);
+            border-color: rgb(74 222 128);
+            color: rgb(22 163 74);
         }
         .slot-running {
-            @apply bg-green-500 border-green-700 text-white shadow-lg hover:bg-green-600;
+            background-color: rgb(34 197 94);
+            border-color: rgb(21 128 61);
+            color: rgb(255 255 255);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .slot-running:hover {
+            background-color: rgb(22 163 74);
         }
         .slot-error {
-            @apply bg-red-500 border-red-700 text-white shadow-lg hover:bg-red-600 animate-pulse;
+            background-color: rgb(239 68 68);
+            border-color: rgb(185 28 28);
+            color: rgb(255 255 255);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        .slot-error:hover {
+            background-color: rgb(220 38 38);
         }
         .slot-off {
-            @apply bg-gray-500 border-gray-700 text-white shadow-lg hover:bg-gray-600;
+            background-color: rgb(107 114 128);
+            border-color: rgb(55 65 81);
+            color: rgb(255 255 255);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .slot-off:hover {
+            background-color: rgb(75 85 99);
         }
 
         /* Contenedor principal del rack para centrar */
@@ -42,6 +79,15 @@
         .modal-bg {
             background-color: rgba(0, 0, 0, 0.6);
         }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -50,7 +96,7 @@
         <!-- Barra Superior / Header -->
         <header class="bg-gray-900 text-white shadow-lg p-4 md:p-6 sticky top-0 z-10">
             <div class="flex flex-col md:flex-row justify-between items-center">
-                <h1 id="header-title" class="text-2xl font-bold mb-2 md:mb-0 cursor-pointer hover:text-indigo-400 transition duration-300" onclick="setView('containers')">
+                <h1 id="header-title" class="text-2xl font-bold mb-2 md:mb-0 cursor-pointer hover:text-indigo-400 transition duration-300">
                     🗺️ Mapeo de Granja de Minería (MODO DEMO)
                 </h1>
                 <div id="status-summary" class="text-sm font-medium text-gray-300">
@@ -83,7 +129,7 @@
             </div>
 
             <div class="mt-6 flex justify-end space-x-3">
-                <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-150">
+                <button id="cancel-button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-150">
                     Cancelar
                 </button>
             </div>
@@ -91,7 +137,7 @@
     </div>
 
     <!-- Script de la Aplicación (Sin Firebase) -->
-    <script type="module">
+    <script>
         // NO importamos Firebase aquí para garantizar que no haya inicialización.
 
         // --- GESTIÓN DE CONSTANTES ---
@@ -118,6 +164,7 @@
         const modalTitle = document.getElementById('modal-title');
         const modalLocationText = document.getElementById('modal-location-text');
         const formContent = document.getElementById('form-content');
+        const cancelButton = document.getElementById('cancel-button');
 
         // --- FUNCIONES DE MODO DEMO ---
 
@@ -170,6 +217,85 @@
             updateSummary(rigsData.size, Array.from(rigsData.values()).filter(r => r.status === 'running').length, Array.from(rigsData.values()).filter(r => r.status === 'error').length, LAYOUT.CONTAINERS * LAYOUT.SHELVES * LAYOUT.SECTIONS * LAYOUT.POSITIONS);
         };
 
+        // --- FUNCIONES DE MODAL ---
+
+        const openAddRigModal = (locationId) => {
+            modalLocationText.textContent = locationId;
+            modalTitle.textContent = 'Agregar Máquina Minera';
+            
+            formContent.innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ID de Máquina</label>
+                        <input type="text" id="machine-id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ej: S19-A123">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                        <select id="machine-status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="running">🟢 En Ejecución</option>
+                            <option value="off">⚪ Apagada</option>
+                            <option value="error">🔴 Error</option>
+                        </select>
+                    </div>
+                    <button onclick="saveRig('${locationId}', document.getElementById('machine-id').value, document.getElementById('machine-status').value)" 
+                            class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-150 font-medium">
+                        Agregar Máquina
+                    </button>
+                </div>
+            `;
+            
+            openModal();
+        };
+
+        const openEditRigModal = (locationId, rig) => {
+            modalLocationText.textContent = locationId;
+            modalTitle.textContent = 'Editar Máquina Minera';
+            
+            formContent.innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ID de Máquina</label>
+                        <input type="text" id="machine-id" value="${rig.id}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                        <select id="machine-status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <option value="running" ${rig.status === 'running' ? 'selected' : ''}>🟢 En Ejecución</option>
+                            <option value="off" ${rig.status === 'off' ? 'selected' : ''}>⚪ Apagada</option>
+                            <option value="error" ${rig.status === 'error' ? 'selected' : ''}>🔴 Error</option>
+                        </select>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button onclick="saveRig('${locationId}', document.getElementById('machine-id').value, document.getElementById('machine-status').value)" 
+                                class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-150 font-medium">
+                            Guardar Cambios
+                        </button>
+                        <button onclick="deleteRig('${rig.docId}', '${locationId}')" 
+                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-150 font-medium">
+                            Eliminar
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            openModal();
+        };
+
+        const openModal = () => {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modalContentWrapper.classList.remove('scale-95', 'opacity-0');
+                modalContentWrapper.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        };
+
+        const closeModal = () => {
+            modalContentWrapper.classList.remove('scale-100', 'opacity-100');
+            modalContentWrapper.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        };
 
         // --- FUNCIONES DE RENDERIZADO DE VISTA ---
 
@@ -263,91 +389,6 @@
                         else if (totalRunning === totalRigs && totalRigs > 0) statusColor = 'bg-green-500';
                         else if (totalRigs > 0) statusColor = 'bg-indigo-500';
 
-
                         return `
                             <div onclick="setView('slots', ${containerNum}, ${shelfNum})"
-                                class="bg-white p-4 rounded-xl shadow-lg cursor-pointer hover:shadow-xl hover:-translate-y-0.5 transition duration-300 transform border-t-4 ${totalError > 0 ? 'border-red-500' : 'border-indigo-300'}">
-                                
-                                <h3 class="text-xl font-bold text-gray-900 mb-1">Estante S${shelfNum}</h3>
-                                <p class="text-xs text-gray-500 mb-3">Puestos: ${totalRigs}/${totalSlots} (${utilization}%)</p>
-
-                                <div class="w-full h-1.5 rounded-full overflow-hidden bg-gray-200 mb-2">
-                                    <div class="h-full ${statusColor}" style="width: ${utilization}%"></div>
-                                </div>
-                                
-                                <div class="flex justify-between text-xs font-medium">
-                                    <span class="text-green-600">🟢 ${totalRunning}</span>
-                                    <span class="text-red-600">🔴 ${totalError}</span>
-                                    <span class="text-gray-500">⚪ ${totalSlots - totalRigs}</span>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-                <!-- Fin de Cuadrícula de Estantes -->
-            `;
-        };
-
-        // Renderiza la vista detallada de los 35 Puestos de un Estante
-        const renderSlots = (containerNum, shelfNum) => {
-            headerTitle.innerHTML = `C${containerNum} - S${shelfNum} | Puestos (MODO DEMO)`;
-
-            const breadcrumb = `
-                <button onclick="setView('containers')" class="text-indigo-500 hover:text-indigo-700">Contenedores</button>
-                <span class="mx-2 text-gray-400">/</span>
-                <button onclick="setView('shelves', ${containerNum})" class="text-indigo-500 hover:text-indigo-700">C${containerNum}</button>
-                <span class="mx-2 text-gray-400">/</span>
-                <span class="font-bold text-gray-700">S${shelfNum}</span>
-            `;
-
-            let htmlContent = `
-                <nav class="mb-6 text-sm">${breadcrumb}</nav>
-                <h2 class="text-3xl font-extrabold text-gray-900 mb-4">Mapa de Puestos en S${shelfNum} (C${containerNum})</h2>
-                
-                <!-- Leyenda de Tramos/Puestos -->
-                <div class="flex justify-center mb-6">
-                    <div class="bg-white p-4 rounded-xl shadow-md inline-block">
-                        <p class="text-sm font-semibold text-gray-700 mb-2">Posiciones (P)</p>
-                        <div class="flex space-x-2">
-                            ${Array.from({ length: LAYOUT.POSITIONS }, (_, p) => `<span class="px-2 py-0.5 bg-gray-100 rounded text-xs font-mono">P${p + 1}</span>`).join('')}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Contenedor del Rack (Centrado y con Marco) -->
-                <div class="flex justify-center">
-                    <div class="rack-container bg-gray-800 p-4 rounded-xl shadow-2xl relative">
-                        <!-- Etiqueta de Tramos (Filas) -->
-                        <div class="absolute left-0 -translate-x-full top-0 pt-4 pr-2 space-y-3.5 flex flex-col justify-start h-full">
-                            ${Array.from({ length: LAYOUT.SECTIONS }, (_, t) => `<span class="text-gray-400 font-mono text-sm h-12 flex items-center justify-end">T${LAYOUT.SECTIONS - t}</span>`).join('')}
-                        </div>
-                        
-                        <!-- La Cuadrícula de 7x5 (Tramos x Puestos) -->
-                        <div class="grid gap-2 p-2 bg-gray-900 rounded-lg" 
-                             style="grid-template-columns: repeat(${LAYOUT.POSITIONS}, minmax(0, 1fr)); grid-template-rows: repeat(${LAYOUT.SECTIONS}, minmax(0, 1fr));">
-                            
-                            ${Array.from({ length: LAYOUT.SECTIONS }, (_, t) => {
-                                // Invertimos el orden de las filas para que T1 sea abajo y T7 sea arriba, 
-                                // como es típico en la nomenclatura de racks (U1, U2, ...)
-                                const reverseT = LAYOUT.SECTIONS - t; 
-                                
-                                let rowHtml = '';
-                                for (let p = 1; p <= LAYOUT.POSITIONS; p++) {
-                                    const locationId = `C${containerNum}-S${shelfNum}-T${reverseT}-P${p}`;
-                                    const rig = rigsData.get(locationId);
-                                    
-                                    let slotClass = 'slot-empty';
-                                    let slotContent = `P${p}`; // Puesto
-
-                                    if (rig) {
-                                        const status = rig.status;
-                                        const machineIdShort = rig.id.length > 5 ? rig.id.substring(0, 5) + '...' : rig.id;
-                                        
-                                        if (status === 'running') slotClass = 'slot-running';
-                                        else if (status === 'error') slotClass = 'slot-error';
-                                        else if (status === 'off') slotClass = 'slot-off';
-
-                                        // Contenido mejorado para el slot
-                                        slotContent = `
-                                            <span class="text-[10px] font-bold leading-none">${machineIdShort}</span>
-                                            <span class="text-[8px] font-normal opacity-75 leading-none">T${reverseT} P${
+                     
