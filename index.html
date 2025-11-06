@@ -101,20 +101,23 @@
 
         // --- GESTIÓN DE VARIABLES GLOBALES DE CANVAS/FIREBASE ---
         
-        // Asignación robusta de variables globales con fallbacks seguros.
-        // Esto previene el error de "variable no definida" al correr localmente.
-        const appId = (typeof __app_id !== 'undefined' && __app_id) || 'default-app-id';
-        const rawFirebaseConfig = (typeof __firebase_config !== 'undefined' && JSON.parse(__firebase_config)) || null;
-        const initialAuthToken = (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) || null;
+        // Comprobación de si las variables globales de Firebase están definidas.
+        // Si no lo están, asumimos que estamos en un entorno externo (local, GitHub Pages) y activamos el modo demo.
+        const HAS_CANVAS_CONFIG = typeof __app_id !== 'undefined';
         
-        // Define la configuración de Firebase. 
+        const appId = HAS_CANVAS_CONFIG ? __app_id : 'default-app-id';
+        const rawFirebaseConfig = HAS_CANVAS_CONFIG ? JSON.parse(__firebase_config) : null;
+        const initialAuthToken = HAS_CANVAS_CONFIG ? __initial_auth_token : null;
+        
+        // Define la configuración de Firebase para evitar errores de inicialización.
+        // Usamos una clave vacía como bandera para el MODO DEMO.
         const firebaseConfig = rawFirebaseConfig || { 
-            apiKey: "DEMO_MODE_PLACEHOLDER", // Se usa como bandera para el modo demo
+            apiKey: "DEMO_MODE_PLACEHOLDER", // Banderas para el modo demo
             authDomain: "demo.firebaseapp.com",
             projectId: "demo-project"
         };
 
-        const IS_DEMO_MODE = (firebaseConfig.apiKey === "DEMO_MODE_PLACEHOLDER" || firebaseConfig.apiKey === "YOUR_API_KEY"); 
+        const IS_DEMO_MODE = !HAS_CANVAS_CONFIG || firebaseConfig.apiKey === "DEMO_MODE_PLACEHOLDER" || firebaseConfig.apiKey === "YOUR_API_KEY"; 
 
         let db;
         let auth;
@@ -158,7 +161,7 @@
         };
 
         const startDemoMode = () => {
-            console.warn("ADVERTENCIA: Usando Modo Demo. Los datos NO serán persistentes.");
+            console.warn("ADVERTENCIA: Usando Modo Demo. Los datos NO serán persistentes. La aplicación se cargará con datos de ejemplo.");
             isAuthReady = true;
             userId = 'demo-user-123';
             document.getElementById('loading-initial').classList.add('hidden');
@@ -168,8 +171,13 @@
         };
 
         const initializeFirebase = async () => {
+            // Si está en Modo Demo, salta la inicialización de Firebase
+            if (IS_DEMO_MODE) {
+                return startDemoMode();
+            }
+
+            // Inicialización real de Firebase
             try {
-                // Solo se ejecuta si NO es modo demo
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -396,10 +404,4 @@
                         const shelfPrefix = `C${containerNum}-S${shelfNum}-`;
                         const shelfRigs = Array.from(rigsData.values()).filter(rig => rig.location.startsWith(shelfPrefix));
                         const totalRigs = shelfRigs.length;
-                        const totalRunning = shelfRigs.filter(r => r.status === 'running').length;
-                        const totalError = shelfRigs.filter(r => r.status === 'error').length;
-                        const totalSlots = LAYOUT.SECTIONS * LAYOUT.POSITIONS;
-                        const utilization = Math.round((totalRigs / totalSlots) * 100);
-
-                        // Lógica de color de estado
-         
+                        const totalRunning = shelfRigs.filter(r => r
