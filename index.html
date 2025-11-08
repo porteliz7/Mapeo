@@ -4,402 +4,561 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Granja de Minería Bitcoin</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8;
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
         }
-        .slot {
-            transition: all 0.2s;
-            cursor: pointer;
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        header h1 {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header-info {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .stat-box {
+            background-color: rgba(255,255,255,0.1);
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .container-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .container-btn {
+            flex: 1;
+            padding: 15px;
+            font-size: 1.2rem;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            border: 2px solid #bdc3c7;
+        }
+        
+        .container-btn.active {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: var(--secondary-color);
+        }
+        
+        .visualization {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .shelves-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        
+        .shelf {
+            background-color: var(--light-color);
+            border-radius: 5px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .shelf:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .shelf h3 {
+            margin-bottom: 10px;
+        }
+        
+        .shelf-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+        }
+        
+        .machine-details {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        
+        .machine-details h2 {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .machine-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .machine-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .status-active {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .status-inactive {
+            background-color: var(--warning-color);
+            color: white;
+        }
+        
+        .status-offline {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .tramos-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .tramo {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .tramo h4 {
+            margin-bottom: 10px;
+        }
+        
+        .machine-slot {
+            height: 30px;
+            margin: 5px 0;
+            border-radius: 4px;
+            display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 600;
-            border-radius: 0.5rem;
-            box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
-            width: 100%;
-            height: 3rem;
-            padding: 0.25rem;
-            border-width: 2px;
-            min-width: 40px;
+            font-size: 0.8rem;
+            cursor: pointer;
         }
+        
         .slot-empty {
-            background-color: rgb(249 250 251);
-            border-style: dashed;
-            border-color: rgb(209 213 219);
-            color: rgb(156 163 175);
+            background-color: #e9ecef;
+            color: #6c757d;
         }
-        .slot-empty:hover {
-            background-color: rgb(240 253 244);
-            border-color: rgb(74 222 128);
-            color: rgb(22 163 74);
+        
+        .slot-occupied {
+            background-color: var(--secondary-color);
+            color: white;
         }
-        .slot-running {
-            background-color: rgb(34 197 94);
-            border-color: rgb(21 128 61);
-            color: rgb(255 255 255);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        
+        .slot-problem {
+            background-color: var(--accent-color);
+            color: white;
         }
-        .slot-running:hover {
-            background-color: rgb(22 163 74);
-        }
-        .slot-error {
-            background-color: rgb(239 68 68);
-            border-color: rgb(185 28 28);
-            color: rgb(255 255 255);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        .slot-error:hover {
-            background-color: rgb(220 38 38);
-        }
-        .slot-off {
-            background-color: rgb(107 114 128);
-            border-color: rgb(55 65 81);
-            color: rgb(255 255 255);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-        }
-        .slot-off:hover {
-            background-color: rgb(75 85 99);
-        }
-        .rack-container {
-            max-width: 500px;
-        }
-        .modal-bg {
-            background-color: rgba(0, 0, 0, 0.6);
-        }
-        .hidden {
-            display: none !important;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: .5; }
+        
+        @media (max-width: 768px) {
+            .shelves-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .machine-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .tramos-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
         }
     </style>
 </head>
-<body class="antialiased">
-    <div id="app" class="min-h-screen">
-        <header class="bg-gray-900 text-white shadow-lg p-4 md:p-6 sticky top-0 z-10">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <h1 id="header-title" class="text-2xl font-bold mb-2 md:mb-0 cursor-pointer hover:text-indigo-400 transition duration-300">
-                    🗺️ Mapeo de Granja de Minería (MODO DEMO)
-                </h1>
-                <div id="status-summary" class="text-sm font-medium text-gray-300">
-                    Cargando estado...
+<body>
+    <header>
+        <div class="container">
+            <h1>Gestor de Granja de Minería Bitcoin</h1>
+            <div class="header-info">
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-label">Máquinas Totales</div>
+                        <div class="stat-value" id="total-machines">0/840</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Activas</div>
+                        <div class="stat-value" id="active-machines">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Con Problemas</div>
+                        <div class="stat-value" id="problem-machines">0</div>
+                    </div>
                 </div>
             </div>
-        </header>
-
-        <div id="main-content" class="container mx-auto p-4 md:p-8">
-            <div id="loading-initial" class="flex justify-center items-center h-64 text-gray-500">
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Cargando Modo Demo...
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="controls">
+            <button id="add-machine-btn">Agregar Máquina</button>
+            <button id="export-data-btn">Exportar Datos</button>
+        </div>
+        
+        <div class="container-selector">
+            <button class="container-btn active" data-container="1">Container 1</button>
+            <button class="container-btn" data-container="2">Container 2</button>
+            <button class="container-btn" data-container="3">Container 3</button>
+        </div>
+        
+        <div class="visualization">
+            <h2>Estantes - Container <span id="current-container">1</span></h2>
+            <div class="shelves-grid" id="shelves-container">
+                <!-- Los estantes se generarán dinámicamente con JavaScript -->
             </div>
         </div>
-    </div>
-
-    <div id="rig-modal" class="modal-bg fixed inset-0 hidden items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all duration-300 scale-95 opacity-0" id="modal-content-wrapper">
-            <h3 id="modal-title" class="text-2xl font-bold text-gray-900 mb-4">Detalles de Puesto</h3>
-            <p class="text-sm text-gray-500 mb-4">Ubicación: <span id="modal-location-text" class="font-mono bg-gray-100 px-2 py-1 rounded"></span></p>
-            <div id="form-content"></div>
-            <div class="mt-6 flex justify-end space-x-3">
-                <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-150">
-                    Cancelar
-                </button>
+        
+        <div class="machine-details" id="machine-details" style="display: none;">
+            <h2>Detalles de la Máquina</h2>
+            <div class="machine-form" id="machine-form">
+                <!-- El formulario se generará dinámicamente con JavaScript -->
             </div>
         </div>
-    </div>
+    </main>
 
     <script>
-        // Constantes
-        const LAYOUT = {
-            CONTAINERS: 3,
-            SHELVES: 8,
-            SECTIONS: 7,
-            POSITIONS: 5
+        // Datos de ejemplo para la demostración
+        let farmData = {
+            containers: [
+                {
+                    id: 1,
+                    shelves: Array(8).fill().map((_, shelfIndex) => ({
+                        id: shelfIndex + 1,
+                        tramos: Array(7).fill().map((_, tramoIndex) => ({
+                            id: tramoIndex + 1,
+                            machines: Array(5).fill().map((_, machineIndex) => ({
+                                id: null,
+                                model: '',
+                                status: 'empty',
+                                hashrate: 0,
+                                power: 0,
+                                temperature: 0
+                            }))
+                        }))
+                    }))
+                },
+                {
+                    id: 2,
+                    shelves: Array(8).fill().map((_, shelfIndex) => ({
+                        id: shelfIndex + 1,
+                        tramos: Array(7).fill().map((_, tramoIndex) => ({
+                            id: tramoIndex + 1,
+                            machines: Array(5).fill().map((_, machineIndex) => ({
+                                id: null,
+                                model: '',
+                                status: 'empty',
+                                hashrate: 0,
+                                power: 0,
+                                temperature: 0
+                            }))
+                        }))
+                    }))
+                },
+                {
+                    id: 3,
+                    shelves: Array(8).fill().map((_, shelfIndex) => ({
+                        id: shelfIndex + 1,
+                        tramos: Array(7).fill().map((_, tramoIndex) => ({
+                            id: tramoIndex + 1,
+                            machines: Array(5).fill().map((_, machineIndex) => ({
+                                id: null,
+                                model: '',
+                                status: 'empty',
+                                hashrate: 0,
+                                power: 0,
+                                temperature: 0
+                            }))
+                        }))
+                    }))
+                }
+            ]
         };
 
-        // Estado
-        let rigsData = new Map();
-        let currentView = { name: 'containers', container: null, shelf: null };
+        // Variables globales
+        let currentContainer = 1;
+        let currentShelf = null;
+        let currentTramo = null;
+        let currentMachineIndex = null;
 
-        // Referencias DOM
-        const mainContent = document.getElementById('main-content');
-        const headerTitle = document.getElementById('header-title');
-        const statusSummary = document.getElementById('status-summary');
-        const modal = document.getElementById('rig-modal');
-        const modalContentWrapper = document.getElementById('modal-content-wrapper');
-        const modalTitle = document.getElementById('modal-title');
-        const modalLocationText = document.getElementById('modal-location-text');
-        const formContent = document.getElementById('form-content');
-        const loadingElement = document.getElementById('loading-initial');
-
-        // Datos de demo
-        const createDemoData = () => {
-            const demoMap = new Map();
-            demoMap.set('C1-S1-T1-P1', { id: 'S19-A123', location: 'C1-S1-T1-P1', status: 'running', docId: 'demo1' });
-            demoMap.set('C1-S1-T1-P2', { id: 'S19-B456', location: 'C1-S1-T1-P2', status: 'error', docId: 'demo2' });
-            demoMap.set('C1-S1-T7-P5', { id: 'S19-LAST', location: 'C1-S1-T7-P5', status: 'running', docId: 'demo4' });
-            demoMap.set('C2-S5-T3-P4', { id: 'M30-X999', location: 'C2-S5-T3-P4', status: 'off', docId: 'demo3' });
-            return demoMap;
-        };
-
-        // Iniciar modo demo
-        const startDemoMode = () => {
-            console.log("Iniciando modo demo...");
-            rigsData = createDemoData();
-            if (loadingElement) {
-                loadingElement.classList.add('hidden');
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            // Cargar datos desde localStorage si existen
+            const savedData = localStorage.getItem('bitcoinFarmData');
+            if (savedData) {
+                farmData = JSON.parse(savedData);
             }
-            renderApp();
-            updateSummary();
-        };
+            
+            // Configurar eventos
+            setupEventListeners();
+            
+            // Renderizar la vista inicial
+            renderContainerSelector();
+            renderShelves(currentContainer);
+            updateStats();
+        });
 
-        // Actualizar resumen
-        const updateSummary = () => {
-            const totalRigs = rigsData.size;
-            const totalRunning = Array.from(rigsData.values()).filter(r => r.status === 'running').length;
-            const totalError = Array.from(rigsData.values()).filter(r => r.status === 'error').length;
-            const totalSlots = LAYOUT.CONTAINERS * LAYOUT.SHELVES * LAYOUT.SECTIONS * LAYOUT.POSITIONS;
-            const totalAvailable = totalSlots - totalRigs;
-            
-            if (statusSummary) {
-                statusSummary.innerHTML = `
-                    <span class="text-green-400">Activas: ${totalRunning}</span> / 
-                    <span class="text-red-400">Error: ${totalError}</span> / 
-                    <span class="text-indigo-400">Disponibles: ${totalAvailable}</span> / 
-                    <span class="font-bold text-gray-400">Total Puestos: ${totalSlots}</span>
-                `;
-            }
-        };
-
-        // Funciones de modal
-        const openAddRigModal = (locationId) => {
-            modalLocationText.textContent = locationId;
-            modalTitle.textContent = 'Agregar Máquina Minera';
-            
-            formContent.innerHTML = `
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">ID de Máquina</label>
-                        <input type="text" id="machine-id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Ej: S19-A123">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                        <select id="machine-status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="running">🟢 En Ejecución</option>
-                            <option value="off">⚪ Apagada</option>
-                            <option value="error">🔴 Error</option>
-                        </select>
-                    </div>
-                    <button onclick="saveRig('${locationId}')" 
-                            class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-150 font-medium">
-                        Agregar Máquina
-                    </button>
-                </div>
-            `;
-            
-            openModal();
-        };
-
-        const openEditRigModal = (locationId, rig) => {
-            modalLocationText.textContent = locationId;
-            modalTitle.textContent = 'Editar Máquina Minera';
-            
-            formContent.innerHTML = `
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">ID de Máquina</label>
-                        <input type="text" id="machine-id" value="${rig.id}" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                        <select id="machine-status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                            <option value="running" ${rig.status === 'running' ? 'selected' : ''}>🟢 En Ejecución</option>
-                            <option value="off" ${rig.status === 'off' ? 'selected' : ''}>⚪ Apagada</option>
-                            <option value="error" ${rig.status === 'error' ? 'selected' : ''}>🔴 Error</option>
-                        </select>
-                    </div>
-                    <div class="flex space-x-3">
-                        <button onclick="saveRig('${locationId}')" 
-                                class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-150 font-medium">
-                            Guardar Cambios
-                        </button>
-                        <button onclick="deleteRig('${rig.docId}', '${locationId}')" 
-                                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-150 font-medium">
-                            Eliminar
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            openModal();
-        };
-
-        const openModal = () => {
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modalContentWrapper.classList.remove('scale-95', 'opacity-0');
-                modalContentWrapper.classList.add('scale-100', 'opacity-100');
-            }, 10);
-        };
-
-        const closeModal = () => {
-            modalContentWrapper.classList.remove('scale-100', 'opacity-100');
-            modalContentWrapper.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-        };
-
-        // Guardar máquina
-        const saveRig = (locationId) => {
-            const machineId = document.getElementById('machine-id').value;
-            const status = document.getElementById('machine-status').value;
-            
-            const isNew = !rigsData.has(locationId);
-            const docId = isNew ? `demo-${Math.random().toString(36).substring(2, 9)}` : rigsData.get(locationId)?.docId;
-            
-            rigsData.set(locationId, { 
-                id: machineId.trim(), 
-                location: locationId, 
-                status: status, 
-                docId: docId 
+        // Configurar eventos
+        function setupEventListeners() {
+            // Selector de containers
+            document.querySelectorAll('.container-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.container-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentContainer = parseInt(this.getAttribute('data-container'));
+                    document.getElementById('current-container').textContent = currentContainer;
+                    renderShelves(currentContainer);
+                });
             });
             
-            renderApp();
-            closeModal();
-            updateSummary();
-        };
+            // Botón para agregar máquina
+            document.getElementById('add-machine-btn').addEventListener('click', function() {
+                showAddMachineForm();
+            });
+            
+            // Botón para exportar datos
+            document.getElementById('export-data-btn').addEventListener('click', function() {
+                exportData();
+            });
+        }
 
-        // Eliminar máquina
-        const deleteRig = (docId, locationId) => {
-            rigsData.delete(locationId);
-            renderApp();
-            closeModal();
-            updateSummary();
-        };
+        // Renderizar selector de containers
+        function renderContainerSelector() {
+            const containerSelector = document.querySelector('.container-selector');
+            containerSelector.innerHTML = '';
+            
+            farmData.containers.forEach(container => {
+                const btn = document.createElement('button');
+                btn.className = `container-btn ${container.id === currentContainer ? 'active' : ''}`;
+                btn.setAttribute('data-container', container.id);
+                btn.textContent = `Container ${container.id}`;
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.container-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentContainer = parseInt(this.getAttribute('data-container'));
+                    document.getElementById('current-container').textContent = currentContainer;
+                    renderShelves(currentContainer);
+                });
+                containerSelector.appendChild(btn);
+            });
+        }
 
-        // Funciones de vista
-        const setView = (viewName, container = null, shelf = null) => {
-            currentView = { name: viewName, container: container, shelf: shelf };
-            renderApp();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-
-        const renderApp = () => {
-            switch (currentView.name) {
-                case 'containers':
-                    renderContainers();
-                    break;
-                case 'shelves':
-                    renderShelves(currentView.container);
-                    break;
-                case 'slots':
-                    renderSlots(currentView.container, currentView.shelf);
-                    break;
-                default:
-                    renderContainers();
-            }
-        };
-
-        const renderContainers = () => {
-            headerTitle.innerHTML = `🗺️ Mapeo de Granja de Minería (MODO DEMO)`;
-
-            mainContent.innerHTML = `
-                <h2 class="text-3xl font-extrabold text-gray-900 mb-6">Contenedores (C1 - C${LAYOUT.CONTAINERS})</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    ${Array.from({ length: LAYOUT.CONTAINERS }, (_, c) => {
-                        const containerNum = c + 1;
-                        const containerPrefix = `C${containerNum}-`;
-                        const containerRigs = Array.from(rigsData.values()).filter(rig => rig.location.startsWith(containerPrefix));
-                        const totalRigs = containerRigs.length;
-                        const totalRunning = containerRigs.filter(r => r.status === 'running').length;
-                        const totalError = containerRigs.filter(r => r.status === 'error').length;
-                        const totalSlots = LAYOUT.SHELVES * LAYOUT.SECTIONS * LAYOUT.POSITIONS;
-
-                        return `
-                            <div onclick="setView('shelves', ${containerNum})"
-                                class="bg-white p-6 rounded-2xl shadow-xl border-t-4 border-indigo-500 cursor-pointer hover:shadow-2xl hover:border-indigo-600 transition duration-300">
-                                <h3 class="text-2xl font-bold text-gray-900 mb-2">Contenedor C${containerNum}</h3>
-                                <p class="text-gray-500 mb-4">Capacidad: ${totalSlots} puestos</p>
-                                <div class="space-y-1 text-sm">
-                                    <p class="font-medium text-gray-700">Ocupados: <span class="text-indigo-600 font-bold">${totalRigs}</span></p>
-                                    <p class="font-medium text-gray-700">Activos: <span class="text-green-600 font-bold">${totalRunning}</span></p>
-                                    <p class="font-medium text-gray-700">En Error: <span class="text-red-600 font-bold">${totalError}</span></p>
-                                </div>
-                                <div class="mt-4 h-2 bg-gray-200 rounded-full">
-                                    <div class="h-2 bg-indigo-500 rounded-full" style="width: ${(totalRigs / totalSlots) * 100}%"></div>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
-                </div>
-            `;
-        };
-
-        const renderShelves = (containerNum) => {
-            headerTitle.innerHTML = `C${containerNum} | Estantes (MODO DEMO)`;
-
-            const breadcrumb = `
-                <button onclick="setView('containers')" class="text-indigo-500 hover:text-indigo-700">Contenedores</button>
-                <span class="mx-2 text-gray-400">/</span>
-                <span class="font-bold text-gray-700">C${containerNum}</span>
-            `;
-
-            mainContent.innerHTML = `
-                <nav class="mb-6 text-sm">${breadcrumb}</nav>
-                <h2 class="text-3xl font-extrabold text-gray-900 mb-6">Mapa de Estantes en C${containerNum}</h2>
+        // Renderizar estantes
+        function renderShelves(containerId) {
+            const shelvesContainer = document.getElementById('shelves-container');
+            shelvesContainer.innerHTML = '';
+            
+            const container = farmData.containers.find(c => c.id === containerId);
+            
+            container.shelves.forEach(shelf => {
+                const shelfElement = document.createElement('div');
+                shelfElement.className = 'shelf';
+                shelfElement.setAttribute('data-shelf', shelf.id);
                 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4"> 
-                    ${Array.from({ length: LAYOUT.SHELVES }, (_, s) => {
-                        const shelfNum = s + 1;
-                        const shelfPrefix = `C${containerNum}-S${shelfNum}-`;
-                        const shelfRigs = Array.from(rigsData.values()).filter(rig => rig.location.startsWith(shelfPrefix));
-                        const totalRigs = shelfRigs.length;
-                        const totalRunning = shelfRigs.filter(r => r.status === 'running').length;
-                        const totalError = shelfRigs.filter(r => r.status === 'error').length;
-                        const totalSlots = LAYOUT.SECTIONS * LAYOUT.POSITIONS;
-                        const utilization = Math.round((totalRigs / totalSlots) * 100);
-
-                        let statusColor = 'bg-gray-400';
-                        if (totalError > 0) statusColor = 'bg-red-500';
-                        else if (totalRunning === totalRigs && totalRigs > 0) statusColor = 'bg-green-500';
-                        else if (totalRigs > 0) statusColor = 'bg-indigo-500';
-
-                        return `
-                            <div onclick="setView('slots', ${containerNum}, ${shelfNum})"
-                                class="bg-white p-4 rounded-xl shadow-lg cursor-pointer hover:shadow-xl hover:-translate-y-0.5 transition duration-300 transform border-t-4 ${totalError > 0 ? 'border-red-500' : 'border-indigo-300'}">
-                                <h3 class="text-xl font-bold text-gray-900 mb-1">Estante S${shelfNum}</h3>
-                                <p class="text-xs text-gray-500 mb-3">Puestos: ${totalRigs}/${totalSlots} (${utilization}%)</p>
-                                <div class="w-full h-1.5 rounded-full overflow-hidden bg-gray-200 mb-2">
-                                    <div class="h-full ${statusColor}" style="width: ${utilization}%"></div>
+                // Calcular estadísticas del estante
+                let totalMachines = 0;
+                let activeMachines = 0;
+                let problemMachines = 0;
+                
+                shelf.tramos.forEach(tramo => {
+                    tramo.machines.forEach(machine => {
+                        if (machine.status !== 'empty') {
+                            totalMachines++;
+                            if (machine.status === 'active') activeMachines++;
+                            if (machine.status === 'problem') problemMachines++;
+                        }
+                    });
+                });
+                
+                shelfElement.innerHTML = `
+                    <h3>Estante ${shelf.id}</h3>
+                    <div class="shelf-info">
+                        <span>Máquinas: ${totalMachines}/35</span>
+                        <span>Activas: ${activeMachines}</span>
+                    </div>
+                    <div class="tramos-grid">
+                        ${shelf.tramos.map(tramo => {
+                            const occupied = tramo.machines.filter(m => m.status !== 'empty').length;
+                            return `
+                                <div class="tramo" data-tramo="${tramo.id}">
+                                    <h4>Tramo ${tramo.id}</h4>
+                                    <div>${occupied}/5 ocupados</div>
                                 </div>
-                                <div class="flex justify-between text-xs font-medium">
-                                    <span class="text-green-600">🟢 ${totalRunning}</span>
-                                    <span class="text-red-600">🔴 ${totalError}</span>
-                                    <span class="text-gray-500">⚪ ${totalSlots - totalRigs}</span>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                
+                // Agregar evento para mostrar detalles del estante
+                shelfElement.addEventListener('click', function() {
+                    showShelfDetails(containerId, shelf.id);
+                });
+                
+                shelvesContainer.appendChild(shelfElement);
+            });
+        }
+
+        // Mostrar detalles de un estante específico
+        function showShelfDetails(containerId, shelfId) {
+            const container = farmData.containers.find(c => c.id === containerId);
+            const shelf = container.shelves.find(s => s.id === shelfId);
+            
+            // Crear modal para mostrar detalles del estante
+            const modal = document.createElement('div');
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.7)';
+            modal.style.display = 'flex';
+            modal.style.justifyContent = 'center';
+            modal.style.alignItems = 'center';
+            modal.style.zIndex = '1000';
+            
+            modal.innerHTML = `
+                <div style="background: white; padding: 20px; border-radius: 8px; max-width: 90%; max-height: 90%; overflow: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2>Container ${containerId} - Estante ${shelfId}</h2>
+                        <button id="close-modal" style="background: #e74c3c;">Cerrar</button>
+                    </div>
+                    <div class="tramos-detailed">
+                        ${shelf.tramos.map(tramo => `
+                            <div style="margin-bottom: 20px;">
+                                <h3>Tramo ${tramo.id}</h3>
+                                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;">
+                                    ${tramo.machines.map((machine, index) => {
+                                        let slotClass = 'slot-empty';
+                                        let slotText = 'Vacío';
+                                        
+                                        if (machine.status === 'active') {
+                                            slotClass = 'slot-occupied';
+                                            slotText = machine.model || 'Máquina';
+                                        } else if (machine.status === 'problem') {
+                                            slotClass = 'slot-problem';
+                                            slotText = machine.model || 'Problema';
+                                        }
+                                        
+                                        return `
+                                            <div class="machine-slot ${slotClass}" 
+                                                 data-container="${containerId}"
+                                                 data-shelf="${shelfId}"
+                                                 data-tramo="${tramo.id}"
+                                                 data-index="${index}">
+                                                ${slotText}
+                                            </div>
+                                        `;
+                                    }).join('')}
                                 </div>
                             </div>
-                        `;
-                    }).join('')}
+                        `).join('')}
+                    </div>
                 </div>
             `;
-        };
-
-        const renderSlots = (containerNum, shelfNum) => {
-            headerTitle.innerHTML = `C${containerNum} - S${shelfNum} | Puestos (MODO DEMO)`;
-
-            const breadcrumb = `
-                <button onclick="setView('containers')" class="text-indigo-500 hover:text-indigo-700">Contenedores</button>
-                <span class="mx-2 text-gray-400">/</span>
-                <button onclick="setView('shelves', ${con
+            
+            document.body.appendChild(modal);
+            
+            // Configurar evento para cerrar modal
+            document.getEl
